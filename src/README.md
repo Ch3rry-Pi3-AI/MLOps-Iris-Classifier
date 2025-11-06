@@ -1,7 +1,7 @@
-# `src/` README — Core Utilities (Custom Exception, Logger & Data Processing)
+# `src/` README — Core Utilities (Custom Exception, Logger, Data Processing & Model Training)
 
 This folder contains **core modules** for the **Iris Classifier MLOps pipeline**.
-It provides the building blocks for **logging**, **error handling**, and **data preparation**, ensuring a consistent, reproducible workflow across data ingestion, preprocessing, model training, evaluation, and deployment.
+It provides the essential components for **logging**, **error handling**, **data preparation**, and **model training**, ensuring a consistent, reproducible workflow across all stages — from ingestion and preprocessing to training, evaluation, and deployment.
 
 ## 📁 Folder Overview
 
@@ -9,7 +9,8 @@ It provides the building blocks for **logging**, **error handling**, and **data 
 src/
 ├─ custom_exception.py   # Unified and detailed exception handling
 ├─ logger.py             # Centralised logging configuration
-└─ data_processing.py    # Loads data, handles outliers, and splits/serialises sets
+├─ data_processing.py    # Loads data, handles outliers, and splits/serialises sets
+└─ model_training.py     # Trains and evaluates the Decision Tree model
 ```
 
 ## ⚠️ `custom_exception.py` — Unified Error Handling
@@ -53,7 +54,7 @@ Traceback (most recent call last):
 ValueError: Iris dataset is empty.
 ```
 
-This ensures all exceptions are reported in a **uniform and traceable** format across the Iris pipeline — from raw data loading to inference.
+This ensures all exceptions are reported in a **uniform and traceable** format across the pipeline — from raw data loading to inference.
 
 ## 🪵 `logger.py` — Centralised Logging
 
@@ -100,7 +101,8 @@ logger.error("Training aborted due to invalid class distribution.")
 
 ### Purpose
 
-Implements the **DataProcessing** class, responsible for preparing the Iris dataset before model training. It loads the dataset, handles outliers, performs a train/test split, and persists processed artefacts to disk.
+Implements the **DataProcessing** class, responsible for preparing the Iris dataset before model training.
+It loads the dataset, handles outliers, performs a train/test split, and persists processed artefacts to disk.
 
 ### Workflow
 
@@ -124,7 +126,7 @@ if __name__ == "__main__":
 ### Output Example
 
 ```
-2025-11-06 14:12:11,301 - INFO - Data read successfully. Shape: (150, 5)
+2025-11-06 14:12:11,301 - INFO - Data read successfully. Shape: (150, 6)
 2025-11-06 14:12:11,402 - INFO - Starting outlier handling for column: SepalWidthCm
 2025-11-06 14:12:11,506 - INFO - Outliers handled successfully for column: SepalWidthCm
 2025-11-06 14:12:11,611 - INFO - Data split successfully into train/test.
@@ -133,21 +135,63 @@ if __name__ == "__main__":
 
 This module is the **entry point for preprocessing**, producing clean, ready-to-train data for the modelling pipeline.
 
+## 🌳 `model_training.py` — Model Training and Evaluation
+
+### Purpose
+
+Implements the **ModelTraining** class, which performs **training and evaluation** of the Decision Tree classifier on the processed Iris data.
+It loads datasets, fits the model, calculates performance metrics, and saves the model artefacts and confusion matrix.
+
+### Workflow
+
+| Step               | Description                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| 1️⃣ Load Data      | Loads `X_train`, `X_test`, `y_train`, and `y_test` from `artifacts/processed/`.             |
+| 2️⃣ Train Model    | Trains a `DecisionTreeClassifier` with `gini` criterion and depth limit of 30.              |
+| 3️⃣ Evaluate Model | Computes **accuracy**, **precision**, **recall**, and **F1-score**, logging each metric.    |
+| 4️⃣ Save Artefacts | Persists `model.pkl` and saves a **confusion matrix** visualisation to `artifacts/models/`. |
+
+### Example Usage
+
+```python
+from src.model_training import ModelTraining
+
+if __name__ == "__main__":
+    trainer = ModelTraining()
+    trainer.run()
+```
+
+### Output Example
+
+```
+2025-11-06 23:25:17,312 - INFO - ModelTraining initialised successfully.
+2025-11-06 23:25:17,456 - INFO - Processed data loaded successfully.
+2025-11-06 23:25:17,498 - INFO - Model trained and saved successfully.
+2025-11-06 23:25:17,557 - INFO - Accuracy Score  : 0.9667
+2025-11-06 23:25:17,558 - INFO - Precision Score : 0.9680
+2025-11-06 23:25:17,559 - INFO - Recall Score    : 0.9667
+2025-11-06 23:25:17,560 - INFO - F1 Score        : 0.9666
+2025-11-06 23:25:17,601 - INFO - Confusion matrix saved successfully.
+```
+
+This module represents the **training and evaluation stage** of the pipeline, completing the end-to-end workflow from raw data to a trained model.
+
 ## 🧩 Integration Guidelines
 
-| Module Type        | Use `CustomException` for…                            | Use `get_logger` for…                                             |
-| ------------------ | ----------------------------------------------------- | ----------------------------------------------------------------- |
-| Data Ingestion     | File loading failures, schema mismatches, empty files | File paths, record counts, schema summaries                       |
-| Preprocessing      | Outlier handling, feature type errors, missing values | Feature distributions, scaling/encoding summaries                 |
-| Model Training     | Invalid targets, convergence issues, NaNs in features | Hyperparameters, metrics per epoch, validation loss tracking      |
-| Evaluation         | Metric computation, output file issues                | Fold-level accuracy, confusion matrix, classification report logs |
-| Inference/Serving  | Invalid payloads, missing model artefacts             | Request summaries, model version, confidence scores               |
-| CI/CD & Scheduling | Failed task steps, API timeouts                       | Pipeline stage logs, run durations, job retries                   |
+| Module Type        | Use `CustomException` for…                            | Use `get_logger` for…                                        |
+| ------------------ | ----------------------------------------------------- | ------------------------------------------------------------ |
+| Data Ingestion     | File loading failures, schema mismatches, empty files | File paths, record counts, schema summaries                  |
+| Preprocessing      | Outlier handling, feature type errors, missing values | Feature distributions, scaling/encoding summaries            |
+| Model Training     | Invalid targets, training failures, missing artefacts | Hyperparameters, metrics per epoch, validation loss tracking |
+| Evaluation         | Metric computation, confusion matrix output issues    | Accuracy, F1-score, and confusion matrix summaries           |
+| Inference/Serving  | Invalid payloads, missing model artefacts             | Request summaries, model version, confidence scores          |
+| CI/CD & Scheduling | Failed task steps, API timeouts                       | Pipeline stage logs, run durations, job retries              |
 
-**Tip:** Use all three modules together for robust, transparent pipeline execution:
+**Tip:** Use all four modules together for robust, transparent pipeline execution:
 
 ```python
 from src.data_processing import DataProcessing
+from src.model_training import ModelTraining
 from src.logger import get_logger
 from src.custom_exception import CustomException
 import sys
@@ -157,16 +201,19 @@ logger = get_logger(__name__)
 try:
     processor = DataProcessing("artifacts/raw/data.csv")
     processor.run()
-    logger.info("Data preparation pipeline completed successfully.")
+    trainer = ModelTraining()
+    trainer.run()
+    logger.info("End-to-end Iris training pipeline completed successfully.")
 except Exception as e:
-    logger.error("Data preparation failed.")
-    raise CustomException("Iris data processing error", sys) from e
+    logger.error("Pipeline execution failed.")
+    raise CustomException("Iris pipeline execution error", sys) from e
 ```
 
 ## ✅ In summary
 
 * `custom_exception.py` ensures **clear, contextual error reporting**.
-* `logger.py` provides **structured, timestamped logging** across modules.
-* `data_processing.py` establishes a **clean, reproducible data preparation workflow**.
+* `logger.py` provides **structured, timestamped logging**.
+* `data_processing.py` establishes a **reliable preprocessing workflow**.
+* `model_training.py` completes the **training and evaluation stage**.
 
-Together, these modules form the **core reliability and preprocessing layer** of the **MLOps Iris Classifier** pipeline — supporting maintainability, traceability, and scalability across all future development stages.
+Together, these modules form the **core reliability, preprocessing, and modelling layer** of the **MLOps Iris Classifier** pipeline — ensuring maintainability, traceability, and reproducibility across all project stages.
