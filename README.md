@@ -60,22 +60,7 @@ mlops_iris_classifier/
 │   └── img/app_background.jpg
 ├── img/
 │   ├── flask/
-│   │   └── flask_app.png          # Flask app preview
 │   └── circle_ci/                 # CircleCI setup screenshots
-│       ├── new_project.png
-│       ├── select_project_option.png
-│       ├── name_project.png
-│       ├── choose_repo.png
-│       ├── select_project_repo.png
-│       ├── setup_config.png
-│       ├── triggers.png
-│       ├── pipeline_setup_success.png
-│       ├── project_settings.png
-│       ├── gcloud_service_key.png
-│       ├── project_id.png
-│       ├── successful_pipeline_run.png
-│       ├── workloads.png
-│       └── endpoint.png
 ├── Dockerfile                     # Container image for Flask app
 ├── kubernetes-deployment.yaml     # Kubernetes Deployment + Service definitions
 ├── app.py                         # Flask application entry point
