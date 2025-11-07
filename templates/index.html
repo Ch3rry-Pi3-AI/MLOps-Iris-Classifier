@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iris Species Prediction</title>
+
+  <!-- Fonts & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+
+  <!-- Inject background image URL via Jinja; keep styling in external CSS -->
+  <style>
+    .bg-overlay {
+      background-image: url("{{ url_for('static', filename='img/app_background.jpg') }}");
+    }
+  </style>
+</head>
+<body>
+  <!-- Background overlay (image set via <style> in <head>) -->
+  <div class="bg-overlay"></div>
+
+  <div class="container">
+    <header class="header">
+      <div>
+        <h2>Iris Species Prediction</h2>
+        <p class="subtitle">Enter measurements below. Values must be within sensible ranges for the Iris dataset.</p>
+      </div>
+    </header>
+
+    <!-- Feature Guidance -->
+    <section class="stats" aria-label="Feature Guidance">
+      <h3>Feature Guidance</h3>
+      <div class="stats-grid">
+        {% for key, conf in features.items() %}
+          <div
+            class="stat-card"
+            title="Mean: {{ '%.2f'|format(conf.mean) }} • IQR: {{ conf.iqr[0] }}–{{ conf.iqr[1] }} • Range: {{ conf.min }}–{{ conf.max }} cm"
+          >
+            <div class="stat-name">{{ conf.label }}</div>
+            <div class="stat-line"><strong>Range:</strong> {{ conf.min }} – {{ conf.max }} cm</div>
+            <div class="stat-line"><strong>Mean:</strong> {{ '%.2f'|format(conf.mean) }} cm</div>
+            <div class="stat-line"><strong>IQR:</strong> {{ conf.iqr[0] }} – {{ conf.iqr[1] }} cm</div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% if error %}
+      <div class="alert error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <!-- Form -->
+    <form action="/" method="POST" class="form-grid" novalidate>
+      <!-- Sepal Length -->
+      <div class="form-row">
+        <label for="SepalLengthCm">Sepal Length (cm)</label>
+        <input
+          id="SepalLengthCm"
+          name="SepalLengthCm"
+          type="number"
+          inputmode="decimal"
+          min="{{ features['SepalLengthCm'].min }}"
+          max="{{ features['SepalLengthCm'].max }}"
+          step="{{ features['SepalLengthCm'].step }}"
+          value="{{ inputs['SepalLengthCm'] }}"
+          list="SepalLengthCm_list"
+          required
+        />
+        <datalist id="SepalLengthCm_list">
+          {% for s in features['SepalLengthCm'].suggested %}
+          <option value="{{ s }}"></option>
+          {% endfor %}
+        </datalist>
+      </div>
+
+      <!-- Sepal Width -->
+      <div class="form-row">
+        <label for="SepalWidthCm">Sepal Width (cm)</label>
+        <input
+          id="SepalWidthCm"
+          name="SepalWidthCm"
+          type="number"
+          inputmode="decimal"
+          min="{{ features['SepalWidthCm'].min }}"
+          max="{{ features['SepalWidthCm'].max }}"
+          step="{{ features['SepalWidthCm'].step }}"
+          value="{{ inputs['SepalWidthCm'] }}"
+          list="SepalWidthCm_list"
+          required
+        />
+        <datalist id="SepalWidthCm_list">
+          {% for s in features['SepalWidthCm'].suggested %}
+          <option value="{{ s }}"></option>
+          {% endfor %}
+        </datalist>
+      </div>
+
+      <!-- Petal Length -->
+      <div class="form-row">
+        <label for="PetalLengthCm">Petal Length (cm)</label>
+        <input
+          id="PetalLengthCm"
+          name="PetalLengthCm"
+          type="number"
+          inputmode="decimal"
+          min="{{ features['PetalLengthCm'].min }}"
+          max="{{ features['PetalLengthCm'].max }}"
+          step="{{ features['PetalLengthCm'].step }}"
+          value="{{ inputs['PetalLengthCm'] }}"
+          list="PetalLengthCm_list"
+          required
+        />
+        <datalist id="PetalLengthCm_list">
+          {% for s in features['PetalLengthCm'].suggested %}
+          <option value="{{ s }}"></option>
+          {% endfor %}
+        </datalist>
+      </div>
+
+      <!-- Petal Width -->
+      <div class="form-row">
+        <label for="PetalWidthCm">Petal Width (cm)</label>
+        <input
+          id="PetalWidthCm"
+          name="PetalWidthCm"
+          type="number"
+          inputmode="decimal"
+          min="{{ features['PetalWidthCm'].min }}"
+          max="{{ features['PetalWidthCm'].max }}"
+          step="{{ features['PetalWidthCm'].step }}"
+          value="{{ inputs['PetalWidthCm'] }}"
+          list="PetalWidthCm_list"
+          required
+        />
+        <datalist id="PetalWidthCm_list">
+          {% for s in features['PetalWidthCm'].suggested %}
+          <option value="{{ s }}"></option>
+          {% endfor %}
+        </datalist>
+      </div>
+
+      <!-- Full-width Predict button -->
+      <button type="submit" class="btn-primary">Predict</button>
+    </form>
+
+    {% if prediction is not none %}
+      <div class="result" aria-live="polite">
+        <h3>Prediction</h3>
+        <p class="pred-label">{{ prediction }}</p>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>
