@@ -16,19 +16,19 @@ jobs:
     executor: docker-executor
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.18
+      - setup_remote_docker   # ← no version pin
       - run:
           name: Install Docker CLI
           command: |
             apt-get update
             apt-get install -y docker.io
+            docker --version
       - run:
           name: Authenticate with Google Cloud
           command: |
             echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
             gcloud auth activate-service-account --key-file=gcp-key.json
-            gcloud auth configure-docker us-central1-docker.pkg.dev || gcloud auth configure-docker
+            gcloud auth configure-docker us-central1-docker.pkg.dev --quiet || gcloud auth configure-docker --quiet
       - run:
           name: Build and Push Image
           command: |
@@ -39,23 +39,18 @@ jobs:
     executor: docker-executor
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.18
-      - run:
-          name: Install Docker CLI (kubectl comes with gcloud image)
-          command: |
-            apt-get update
-            apt-get install -y docker.io
+      # No remote docker or docker install needed here
       - run:
           name: Authenticate with Google Cloud
           command: |
             echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
             gcloud auth activate-service-account --key-file=gcp-key.json
-            gcloud auth configure-docker us-central1-docker.pkg.dev || gcloud auth configure-docker
       - run:
           name: Configure GKE
           command: |
-            gcloud container clusters get-credentials "$GKE_CLUSTER" --region "$GOOGLE_COMPUTE_REGION" --project "$GOOGLE_PROJECT_ID"
+            gcloud container clusters get-credentials "$GKE_CLUSTER" \
+              --region "$GOOGLE_COMPUTE_REGION" \
+              --project "$GOOGLE_PROJECT_ID"
       - run:
           name: Deploy to GKE
           command: |
