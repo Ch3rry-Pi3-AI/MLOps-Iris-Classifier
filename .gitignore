@@ -57,5 +57,5 @@ tests/
 # 🧾 Temporary or Generated Data
 # -------------------------------------------------------------------
 tmp/
-artifacts/
+# artifacts/
 gcp-key.json
