@@ -1,69 +1,162 @@
-version: 2.1
+version: 2.1  # CircleCI config schema version
 
+
+# -------------------------------------------------------------------
+# EXECUTOR CONFIGURATION
+# -------------------------------------------------------------------
+# Executors define the environment where jobs will run.
+# In this case, we use a Docker image containing Google Cloud SDK tools
+# (gcloud, gsutil, kubectl) which allows us to interact with GCP services.
 executors:
   docker-executor:
     docker:
-      - image: google/cloud-sdk:latest
-    working_directory: ~/repo
+      - image: google/cloud-sdk:latest  # Official image from Google
+    working_directory: ~/repo           # Default working directory inside the container
 
+
+# -------------------------------------------------------------------
+# JOB DEFINITIONS
+# -------------------------------------------------------------------
+# Each job defines a sequence of steps to be executed in isolation.
+
+
+# -------------------------------------------------------------------
+# JOB 1: CHECKOUT REPOSITORY
+# -------------------------------------------------------------------
+# This job retrieves the latest source code from the connected VCS (e.g. GitHub).
+# It ensures the rest of the pipeline operates on the newest commit.
 jobs:
   checkout_code:
     executor: docker-executor
     steps:
-      - checkout
+      - checkout  # CircleCI built-in step to clone the repository into the working directory
 
+
+# -------------------------------------------------------------------
+# JOB 2: BUILD AND PUSH DOCKER IMAGE TO GOOGLE ARTIFACT REGISTRY
+# -------------------------------------------------------------------
+# This job builds a Docker image of the application and pushes it
+# to Google Artifact Registry (GAR), making it available for deployment.
+# It requires Docker-in-Docker to build images within the CircleCI environment.
   build_docker_image:
     executor: docker-executor
     steps:
-      - checkout
-      - setup_remote_docker   # ← no version pin
+      - checkout  # Ensure source code is present
+
+      # Enable Docker commands inside the CircleCI job.
+      # This launches a remote Docker engine to build container images.
+      - setup_remote_docker
+
+      # ---------------------------------------------------------------
+      # STEP 1: INSTALL DOCKER CLI
+      # ---------------------------------------------------------------
+      # Some base images may not include the Docker CLI.
+      # This installs it manually so we can build and push containers.
       - run:
           name: Install Docker CLI
           command: |
             apt-get update
             apt-get install -y docker.io
-            docker --version
+            docker --version  # Verify installation
+
+      # ---------------------------------------------------------------
+      # STEP 2: AUTHENTICATE WITH GOOGLE CLOUD
+      # ---------------------------------------------------------------
+      # Use a service account key (stored securely in CircleCI environment variables)
+      # to authenticate with GCP. This allows pushing images to Artifact Registry.
       - run:
           name: Authenticate with Google Cloud
           command: |
+            # Decode the base64-encoded GCP service account key
             echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
+
+            # Activate the service account for gcloud
             gcloud auth activate-service-account --key-file=gcp-key.json
+
+            # Configure Docker to use GCP Artifact Registry credentials
             gcloud auth configure-docker us-central1-docker.pkg.dev --quiet || gcloud auth configure-docker --quiet
+
+      # ---------------------------------------------------------------
+      # STEP 3: BUILD AND PUSH IMAGE TO ARTIFACT REGISTRY
+      # ---------------------------------------------------------------
+      # The image name format follows:
+      # us-central1-docker.pkg.dev/<PROJECT_ID>/<REPO_NAME>/<IMAGE_NAME>:<TAG>
+      # It will push the latest built image to your specified Artifact Registry repository.
       - run:
           name: Build and Push Image
           command: |
+            # Build the Docker image using the Dockerfile in the repository root
             docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/mlops-iris/mlops-iris:latest .
+
+            # Push the tagged image to Artifact Registry
             docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/mlops-iris/mlops-iris:latest
 
+
+# -------------------------------------------------------------------
+# JOB 3: DEPLOY TO GOOGLE KUBERNETES ENGINE (GKE)
+# -------------------------------------------------------------------
+# This job pulls the latest image from Artifact Registry and deploys it
+# to an existing Kubernetes cluster using the kubectl command-line tool.
   deploy_to_gke:
     executor: docker-executor
     steps:
-      - checkout
-      # No remote docker or docker install needed here
+      - checkout  # Retrieve deployment manifests from the repo
+
+      # ---------------------------------------------------------------
+      # STEP 1: AUTHENTICATE WITH GOOGLE CLOUD
+      # ---------------------------------------------------------------
+      # Again, we authenticate using the same service account.
+      # This allows the job to connect to the GKE cluster.
       - run:
           name: Authenticate with Google Cloud
           command: |
             echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
             gcloud auth activate-service-account --key-file=gcp-key.json
+
+      # ---------------------------------------------------------------
+      # STEP 2: CONFIGURE GKE CLUSTER CONTEXT
+      # ---------------------------------------------------------------
+      # This sets the kubectl context to point to your desired cluster.
+      # It uses environment variables defined in CircleCI:
+      #   - GKE_CLUSTER:        the cluster name
+      #   - GOOGLE_COMPUTE_REGION: cluster region
+      #   - GOOGLE_PROJECT_ID:  your GCP project ID
       - run:
           name: Configure GKE
           command: |
             gcloud container clusters get-credentials "$GKE_CLUSTER" \
               --region "$GOOGLE_COMPUTE_REGION" \
               --project "$GOOGLE_PROJECT_ID"
+
+      # ---------------------------------------------------------------
+      # STEP 3: DEPLOY APPLICATION USING KUBECTL
+      # ---------------------------------------------------------------
+      # Applies the deployment and service YAML files.
+      # These define how many pods to run, ports, and load balancing.
       - run:
           name: Deploy to GKE
           command: |
             kubectl apply -f kubernetes-deployment.yaml
 
+
+# -------------------------------------------------------------------
+# WORKFLOW: DEPLOY PIPELINE
+# -------------------------------------------------------------------
+# This section defines how jobs are orchestrated.
+# Each job runs only after its dependencies complete successfully.
 workflows:
   version: 2
   deploy_pipeline:
     jobs:
+      # Step 1: Pull latest code from repository
       - checkout_code
+
+      # Step 2: Build and push Docker image (depends on checkout job)
       - build_docker_image:
           requires:
             - checkout_code
+
+      # Step 3: Deploy to GKE (depends on image build)
       - deploy_to_gke:
           requires:
             - build_docker_image
