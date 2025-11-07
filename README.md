@@ -3,7 +3,7 @@
 This repository demonstrates a **complete MLOps workflow** using the classic **Iris dataset**, progressing from data preprocessing and model training to full web deployment through an automated **CI/CD (Continuous Integration and Continuous Deployment)** pipeline built with **CircleCI**.
 
 <p align="center">
-  <img src="img/flask/flask_app.png" alt="Deployed Flask Iris Classifier Application" style="width:100%; height:auto;" />
+  <img src="img/flask/flask_app.gif" alt="Deployed Flask Iris Classifier Application" style="width:100%; height:auto;" />
 </p>
 
 While the machine learning use case — **Iris species classification** — is intentionally simple, the project’s main objective is to showcase a **modern, production-grade MLOps workflow** using **CircleCI** for pipeline automation, containerisation, and cloud deployment.
@@ -43,9 +43,6 @@ This stage introduced:
 * Clean styling (`static/style.css`)
 * Live model inference served via `app.py`
 
-<p align="center">
-  <img src="img/flask/flask_app.png" alt="Flask App Interface" style="width:100%; height:auto;" />
-</p>
 
 ### ⚙️ **Stage 04 — Training Pipeline**
 
@@ -128,7 +125,3 @@ The entire lifecycle — from dataset to live web application — is **fully aut
 
 This project transforms a basic Iris classification model into a **complete MLOps system**.
 It demonstrates **how to operationalise machine learning workflows** through automation, containerisation, and deployment pipelines — culminating in a **production-ready CI/CD process** powered by **CircleCI**.
-
-<p align="center">
-  <img src="img/flask/flask_app.png" alt="Final Flask App Screenshot" style="width:100%; height:auto;" />
-</p>
