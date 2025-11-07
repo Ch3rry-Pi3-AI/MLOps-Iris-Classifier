@@ -1,350 +1,134 @@
-# 🚀 **CI/CD Deployment — MLOps Iris Classifier**
+# 🌺 **MLOps Iris Classifier — End-to-End CI/CD Deployment**
 
-This branch extends the **MLOps Iris Classifier** pipeline into a **fully automated CI/CD deployment** using **Docker**, **Kubernetes**, and **CircleCI**.
-It represents the **fifth and final workflow stage**, where the trained model and Flask application are containerised, pushed to **Google Artifact Registry**, and deployed on **Google Kubernetes Engine (GKE)** — all triggered automatically from **CircleCI**.
+This repository demonstrates a **complete MLOps workflow** using the classic **Iris dataset**, progressing from data preprocessing and model training to full web deployment through an automated **CI/CD (Continuous Integration and Continuous Deployment)** pipeline built with **CircleCI**.
 
 <p align="center">
   <img src="img/flask/flask_app.png" alt="Deployed Flask Iris Classifier Application" style="width:100%; height:auto;" />
 </p>
 
+While the machine learning use case — **Iris species classification** — is intentionally simple, the project’s main objective is to showcase a **modern, production-grade MLOps workflow** using **CircleCI** for pipeline automation, containerisation, and cloud deployment.
 
-## 🧩 **Overview**
+## 🧩 **Project Overview**
 
-This stage integrates everything built so far — data processing, model training, Flask app deployment — into an end-to-end MLOps system with continuous integration and delivery.
-CircleCI orchestrates the **build → push → deploy** workflow, ensuring every new commit automatically triggers:
+This project guides the full lifecycle of a machine learning system — from raw data to live deployment — following a modular, reproducible, and production-aligned architecture.
+Each stage builds upon the previous one, ensuring traceability, automation, and scalability.
 
-1. Docker image build
-2. Push to Artifact Registry
-3. Deployment update in GKE
+### 🌱 **Stage 00 — Project Setup**
 
-### 🔍 Core Components
+The foundation was established with a structured repository layout (`src/`, `pipeline/`, `artifacts/`, etc.), dependency management via **`uv`**, and environment setup for consistent development.
 
-| Component                       | Description                                                                 |
-| ------------------------------- | --------------------------------------------------------------------------- |
-| **Dockerfile**                  | Builds the container image for the Flask app.                               |
-| **kubernetes-deployment.yaml**  | Defines Kubernetes Deployment and Service for the app.                      |
-| **.circleci/config.yml**        | CI/CD pipeline that builds, pushes, and deploys automatically via CircleCI. |
-| **Google Cloud Platform (GCP)** | Hosts the container registry and managed Kubernetes cluster (GKE).          |
-| **CircleCI**                    | Handles build, authentication, and deployment automation.                   |
+### 💾 **Stage 01 — Data Processing**
+
+The **`data_processing.py`** module handled:
+
+* Loading the Iris dataset
+* Cleaning and handling outliers
+* Splitting into training and test sets
+* Saving processed artefacts for downstream use
+
+This ensured that all preprocessing steps were fully reproducible and logged.
+
+### 🧠 **Stage 02 — Model Training**
+
+The **`model_training.py`** module trained a **Decision Tree Classifier**, evaluated performance (accuracy, precision, recall, F1), and saved both the model (`model.pkl`) and confusion matrix.
+All actions were logged and wrapped with robust exception handling.
+
+### 🌸 **Stage 03 — Flask Application**
+
+A **Flask web app** was developed to serve the trained model through a user-friendly interface.
+Users can input sepal and petal measurements and receive real-time species predictions.
+This stage introduced:
+
+* A responsive UI (`templates/index.html`)
+* Clean styling (`static/style.css`)
+* Live model inference served via `app.py`
+
+<p align="center">
+  <img src="img/flask/flask_app.png" alt="Flask App Interface" style="width:100%; height:auto;" />
+</p>
+
+### ⚙️ **Stage 04 — Training Pipeline**
+
+The **`pipeline/training_pipeline.py`** module unified data processing and model training into a single automated script, ensuring consistent execution and end-to-end logging.
+This stage introduced modular orchestration, preparing the groundwork for CI/CD integration.
+
+### 🚀 **Stage 05 — CI/CD Deployment (CircleCI)**
+
+Finally, the project was extended into a **CI/CD pipeline** — short for **Continuous Integration and Continuous Deployment** — using **CircleCI**.
+Each new commit triggers the following workflow automatically:
+
+1. **Build** a Docker image for the Flask application.
+2. **Push** it to **Google Artifact Registry**.
+3. **Deploy** to **Google Kubernetes Engine (GKE)** as a managed cluster.
+
+The pipeline is defined in `.circleci/config.yml`, while deployment configuration lives in `kubernetes-deployment.yaml`.
 
 
-## 🗂️ **Updated Project Structure**
+## 💡 **Why CircleCI?**
+
+This project deliberately uses **CircleCI** instead of **Jenkins** to demonstrate a simpler, more modern approach to CI/CD.
+
+### ✅ **Key Advantages of CircleCI**
+
+* **Faster setup:** No server installation — entirely cloud-hosted.
+* **Simple configuration:** YAML-based workflows are clean, modular, and easy to maintain.
+* **Integrated environment variables:** Secure handling of credentials like GCP service keys.
+* **Seamless cloud integration:** Direct authentication and deployment to **GCP**, **AWS**, and **Azure**.
+* **Speed and caching:** Builds are significantly faster with built-in caching and Docker layer reuse.
+* **Ease of collaboration:** Automatically integrates with GitHub repositories and triggers on every commit.
+
+Overall, **CircleCI offers a lightweight, scalable, and highly maintainable alternative to Jenkins** for managing modern MLOps workflows.
+
+
+## 🗂️ **Final Project Structure**
 
 ```text
 mlops_iris_classifier/
-├── .circleci/
-│   └── config.yml                 # CircleCI pipeline configuration (build, push, deploy)
-├── artifacts/
+├── .circleci/                    # CircleCI configuration for CI/CD automation
+│   └── config.yml
+├── artifacts/                    # Data, processed artefacts, and model outputs
 │   ├── raw/
 │   ├── processed/
 │   └── models/
 ├── pipeline/
-│   └── training_pipeline.py       # Orchestrates data preparation and model training
+│   └── training_pipeline.py       # Unified orchestration of data processing + training
 ├── src/
 │   ├── data_processing.py
 │   ├── model_training.py
 │   ├── logger.py
 │   └── custom_exception.py
 ├── templates/
-│   └── index.html                 # Flask web app UI
+│   └── index.html                 # Flask front-end UI
 ├── static/
 │   ├── style.css
 │   └── img/app_background.jpg
 ├── img/
-│   ├── flask/
+│   ├── flask/flask_app.png
 │   └── circle_ci/
-├── Dockerfile
-├── kubernetes-deployment.yaml
-├── app.py
-├── pyproject.toml
-├── setup.py
-└── requirements.txt
+├── Dockerfile                     # Container image definition for Flask app
+├── kubernetes-deployment.yaml     # Kubernetes Deployment + Service configuration
+├── app.py                         # Flask application entry point
+├── pyproject.toml                 # Project metadata
+├── setup.py                       # Editable install support
+└── requirements.txt               # Dependencies
 ```
 
-
-## ☁️ **1. Google Cloud Platform Setup**
-
-### Step 1: Enable Required APIs
-
-Go to **GCP Console → Navigation Menu → APIs & Services → Library**, and enable:
-
-* Kubernetes Engine API
-* Google Container Registry API
-* Compute Engine API
-* Cloud Build API
-* Cloud Storage API
-* Identity and Access Management (IAM) API
-
-### Step 2: Create a GKE Cluster
-
-1. In GCP, search **Kubernetes Engine**.
-2. Go to **Clusters → + Create**.
-3. Choose **Autopilot (Managed)** → **Configure**.
-4. Keep default settings for **Cluster Basics** and **Fleet Registration**.
-5. In **Networking**, ensure both options are ticked:
-
-   * ✅ Access using DNS
-   * ✅ Access using IPv4 addresses
-6. Click **Create** and wait for provisioning.
-
-
-### Step 3: Create a Service Account
-
-1. Go to **IAM & Admin → Service Accounts → + CREATE SERVICE ACCOUNT**.
-2. Name it `mlops-iris`.
-3. Click **Create and Continue**.
-4. Grant roles:
-
-   * Owner
-   * Storage Object Admin
-   * Storage Object Viewer
-   * Artifact Registry Administrator
-   * Artifact Registry Writer
-5. Click **Done**.
-6. Under **Actions → Manage Keys → Add Key → Create New Key**, choose **JSON**.
-7. Move the downloaded file to your project root and rename it:
-
-   ```bash
-   mv ~/Downloads/your-key.json gcp-key.json
-   ```
-
-
-### Step 4: Create an Artifact Registry
-
-1. Go to **Navigation Menu → Artifact Registry**.
-2. Click **+ CREATE REPOSITORY**.
-3. Name it `mlops-iris`.
-4. Select region `us-central1`.
-5. Keep defaults → **Create**.
-
-
-## 🐳 **2. Docker and Kubernetes Setup**
-
-### Step 1: Dockerfile
-
-```dockerfile
-FROM python:3.12
-WORKDIR /app
-COPY . /app
-RUN pip install --no-cache-dir -e .
-EXPOSE 5000
-ENV FLASK_APP=app.py
-CMD ["python", "app.py"]
-```
-
-
-### Step 2: kubernetes-deployment.yaml
-
-```yaml
-# Kubernetes Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mlops-iris
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: mlops-iris
-  template:
-    metadata:
-      labels:
-        app: mlops-iris
-    spec:
-      containers:
-        - name: mlops-iris
-          image: us-central1-docker.pkg.dev/sacred-garden-474511-b9/mlops-iris/mlops-iris:latest
-          ports:
-            - containerPort: 5000
-
-# Kubernetes Service
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mlops-service
-spec:
-  selector:
-    app: mlops-iris
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 5000
-  type: LoadBalancer
-```
-
-
-## 🔄 **3. CircleCI Setup**
-
-### Step 1: Create `.circleci/config.yml`
-
-```yaml
-version: 2.1
-executors:
-  docker-executor:
-    docker:
-      - image: google/cloud-sdk:latest
-    working_directory: ~/repo
-
-jobs:
-  checkout_code:
-    executor: docker-executor
-    steps:
-      - checkout
-
-  build_docker_image:
-    executor: docker-executor
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Install Docker CLI
-          command: |
-            apt-get update && apt-get install -y docker.io
-      - run:
-          name: Authenticate with Google Cloud
-          command: |
-            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
-            gcloud auth activate-service-account --key-file=gcp-key.json
-            gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
-      - run:
-          name: Build and Push Image
-          command: |
-            docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/mlops-iris/mlops-iris:latest .
-            docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/mlops-iris/mlops-iris:latest
-
-  deploy_to_gke:
-    executor: docker-executor
-    steps:
-      - checkout
-      - run:
-          name: Authenticate with Google Cloud
-          command: |
-            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
-            gcloud auth activate-service-account --key-file=gcp-key.json
-      - run:
-          name: Configure GKE
-          command: |
-            gcloud container clusters get-credentials "$GKE_CLUSTER" \
-              --region "$GOOGLE_COMPUTE_REGION" \
-              --project "$GOOGLE_PROJECT_ID"
-      - run:
-          name: Deploy to GKE
-          command: |
-            kubectl apply -f kubernetes-deployment.yaml
-
-workflows:
-  version: 2
-  deploy_pipeline:
-    jobs:
-      - checkout_code
-      - build_docker_image:
-          requires:
-            - checkout_code
-      - deploy_to_gke:
-          requires:
-            - build_docker_image
-```
-
-
-### Step 2: Set Up CircleCI
-
-1. Visit [https://circleci.com](https://circleci.com) → create a free account.
-2. Create a new organisation → **New Project**.
-
-<p align="center"><img src="img/circle_ci/new_project.png" style="width:100%; height:auto;" /></p>
-
-3. Select **“Build, test, and deploy your software application.”**
-
-<p align="center"><img src="img/circle_ci/select_project_option.png" style="width:100%; height:auto;" /></p>
-
-4. Name your project.
-
-<p align="center"><img src="img/circle_ci/name_project.png" style="width:100%; height:auto;" /></p>
-
-5. Choose your GitHub repository.
-
-<p align="center"><img src="img/circle_ci/choose_repo.png" style="width:100%; height:auto;" /></p>
-<p align="center"><img src="img/circle_ci/select_project_repo.png" style="width:100%; height:auto;" /></p>
-
-6. CircleCI detects `.circleci/config.yml`.
-
-<p align="center"><img src="img/circle_ci/setup_config.png" style="width:100%; height:auto;" /></p>
-
-7. Leave default **Triggers**.
-
-<p align="center"><img src="img/circle_ci/triggers.png" style="width:100%; height:auto;" /></p>
-
-8. Finish setup.
-
-<p align="center"><img src="img/circle_ci/pipeline_setup_success.png" style="width:100%; height:auto;" /></p>
-
-
-## 🔐 **4. Configure Environment Variables**
-
-### Step 1: Base64 Encode Your GCP Key
-
-```bash
-cat gcp-key.json | base64 -w 0
-```
-
-Copy the output string.
-
-
-### Step 2: Add Variables in CircleCI
-
-Go to **Project Settings → Environment Variables**.
-
-<p align="center"><img src="img/circle_ci/project_settings.png" style="width:100%; height:auto;" /></p>
-
-| Name                    | Value                          |
-| ----------------------- | ------------------------------ |
-| `GCLOUD_SERVICE_KEY`    | (paste base64-encoded key)     |
-| `GOOGLE_PROJECT_ID`     | e.g. `sacred-garden-474511-b9` |
-| `GKE_CLUSTER`           | e.g. `autopilot-cluster-1`     |
-| `GOOGLE_COMPUTE_REGION` | e.g. `us-central1`             |
-
-<p align="center"><img src="img/circle_ci/gcloud_service_key.png" style="width:100%; height:auto;" /></p>
-<p align="center"><img src="img/circle_ci/project_id.png" style="width:100%; height:auto;" /></p>
-
----
-
-## ⚙️ **5. Trigger the Pipeline**
-
-Back in CircleCI, click **“Trigger Pipeline.”**
-
-<p align="center"><img src="img/circle_ci/successful_pipeline_run.png" style="width:100%; height:auto;" /></p>
-
-After a successful run, your application is automatically deployed to GKE.
-
-
-## ☸️ **6. Verify Deployment in GKE**
-
-1. Go to **Kubernetes Engine → Workloads**.
-   You should see your deployment:
-
-   <p align="center"><img src="img/circle_ci/workloads.png" style="width:100%; height:auto;" /></p>
-
-2. Click `mlops-iris` to view details.
-
-3. Scroll to **Exposing Services** to see the **Endpoint URL**:
-
-   <p align="center"><img src="img/circle_ci/endpoint.png" style="width:100%; height:auto;" /></p>
-
-4. Click the endpoint to open the live Flask app:
-
-   <p align="center"><img src="img/flask/flask_app.png" style="width:100%; height:auto;" /></p>
+## 🌐 **End-to-End Workflow Summary**
+
+1. **Data Ingestion & Preprocessing** → clean, split, and save artefacts.
+2. **Model Training** → fit, evaluate, and export model artefacts.
+3. **Flask Deployment** → serve predictions through a local web interface.
+4. **Pipeline Orchestration** → automate full data + training execution.
+5. **CI/CD Integration** → deploy Dockerised app to Kubernetes via CircleCI.
+
+The entire lifecycle — from dataset to live web application — is **fully automated, reproducible, and version-controlled**.
 
 
 ## ✅ **In Summary**
 
-| Stage                     | Description                                         |
-| ------------------------- | --------------------------------------------------- |
-| **Data & Model Pipeline** | Fully automated via `pipeline/training_pipeline.py` |
-| **Containerisation**      | Dockerised Flask app with model and assets          |
-| **Deployment**            | GKE-managed cluster via CircleCI                    |
-| **Automation**            | CI/CD pipeline runs on push to main                 |
-| **Access**                | Public endpoint via LoadBalancer                    |
+This project transforms a basic Iris classification model into a **complete MLOps system**.
+It demonstrates **how to operationalise machine learning workflows** through automation, containerisation, and deployment pipelines — culminating in a **production-ready CI/CD process** powered by **CircleCI**.
 
-Your **MLOps Iris Classifier** is now a complete **end-to-end production pipeline**, from dataset → model → container → CI/CD → live deployment.
-Every component is **automated, versioned, and reproducible** — a true production-ready MLOps system.
+<p align="center">
+  <img src="img/flask/flask_app.png" alt="Final Flask App Screenshot" style="width:100%; height:auto;" />
+</p>
