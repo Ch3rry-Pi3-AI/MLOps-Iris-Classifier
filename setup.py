@@ -42,7 +42,7 @@ with open("requirements.txt", encoding="utf-8") as f:
 # Package Configuration
 # -------------------------------------------------------------------
 setup(
-    name="MLOps-Cancer-Prediction",                     # 📦 Package name
+    name="MLOps-Iris-Classifier",                       # 📦 Package name
     version="0.1",                                      # 🔢 Initial version
     author="Ch3rry Pi3",                                # 👤 Author name
     packages=find_packages(),                           # 📂 Automatically include all subpackages
