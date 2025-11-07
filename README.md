@@ -1,65 +1,56 @@
-# 🌸 **Flask Application — MLOps Iris Classifier**
+# ⚙️ **Training Pipeline — MLOps Iris Classifier**
 
-This branch builds upon the **model training stage** by introducing a **Flask web application** that serves the trained Decision Tree model through an interactive user interface.
-It represents the **third executable workflow stage** of the **MLOps Iris Classifier** pipeline — transforming the trained model into an accessible web app for live predictions.
+This branch builds upon the **model training stage** by introducing the **`training_pipeline.py`** module inside the `pipeline/` folder.
+It represents the **fourth executable workflow stage** of the **MLOps Iris Classifier** pipeline — combining all previous stages into a single, orchestrated execution flow for full automation and reproducibility.
 
 <p align="center">
-  <img src="img/flask/flask_app.png" alt="Flask Iris App Screenshot" width="720"/>
+  <img src="img/flask/flask_app.png" alt="MLOps Iris Pipeline Overview" width="720"/>
 </p>
 
 ## 🧩 **Overview**
 
-This stage introduces three new components:
-
-* **`app.py`** — Flask backend serving the trained model and handling predictions
-* **`templates/index.html`** — Responsive HTML interface for user inputs and prediction results
-* **`static/style.css`** — Front-end styling and visual design, including background image overlay
-
-Together, these files create a **fully functional web application** that allows users to input Iris measurements, see guidance on valid feature ranges, and receive real-time species predictions.
+The **`training_pipeline.py`** script acts as the **orchestration layer** for the MLOps workflow, executing both the **data preparation** and **model training** stages in one seamless run.
+It ensures a consistent, traceable process by leveraging the modular design of `src/data_processing.py` and `src/model_training.py`, with integrated logging and exception handling.
 
 ### 🔍 Core Responsibilities
 
-| Stage | Component                           | Description                                                                                            |
-| ----: | ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
-|   1️⃣ | **`app.py`**                        | Loads the trained model (`model.pkl`), handles routes, processes form inputs, and returns predictions. |
-|   2️⃣ | **`templates/index.html`**          | Provides a dynamic, user-friendly web interface with guidance on valid measurement ranges.             |
-|   3️⃣ | **`static/style.css`**              | Controls overall styling, typography, layout, responsiveness, and background visuals.                  |
-|   4️⃣ | **`static/img/app_background.jpg`** | Adds a faint background image overlay (20% opacity) for visual polish.                                 |
+| Stage | Operation              | Description                                                                                                                                          |
+| ----: | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   1️⃣ | **Data Processing**    | Invokes `DataProcessing` to load the raw dataset, handle outliers, split train/test sets, and save processed artefacts under `artifacts/processed/`. |
+|   2️⃣ | **Model Training**     | Calls `ModelTraining` to load processed data, train a Decision Tree model, evaluate performance, and save results under `artifacts/models/`.         |
+|   3️⃣ | **Logging**            | Records each step, from ingestion to evaluation, via `src/logger.py` for full traceability.                                                          |
+|   4️⃣ | **Exception Handling** | Standardises all errors through `src/custom_exception.py` for consistent debugging.                                                                  |
 
 ## 🗂️ **Updated Project Structure**
 
 ```text
 mlops_iris_classifier/
 ├── .venv/                          # 🧩 Local virtual environment (created by uv)
-├── app.py                          # 🌐 Flask web application entry point
 ├── artifacts/
 │   ├── raw/
 │   │   └── data.csv                # 🌸 Input Iris dataset
-│   ├── processed/                  # 💾 Preprocessed data artefacts
+│   ├── processed/                  # 💾 Preprocessed artefacts (from DataProcessing)
 │   │   ├── X_train.pkl
 │   │   ├── X_test.pkl
 │   │   ├── y_train.pkl
 │   │   └── y_test.pkl
-│   └── models/                     # 🧠 Trained model and evaluation outputs
+│   └── models/                     # 🧠 Trained model and evaluation artefacts
 │       ├── model.pkl
 │       └── confusion_matrix.png
 ├── img/
 │   └── flask/
-│       └── flask_app.png           # 🖼️ Screenshot of the running Flask app
+│       └── flask_app.png           # 🖼️ Pipeline overview or app preview
 ├── mlops_iris_classifier.egg-info/ # 📦 Package metadata (auto-generated)
-├── pipeline/                       # ⚙️ Future Kubeflow pipeline integration
+├── pipeline/                       # ⚙️ Workflow orchestration layer
+│   └── training_pipeline.py        # Executes data preparation + model training
 ├── src/
 │   ├── __init__.py
-│   ├── custom_exception.py         # Unified error handling
-│   ├── logger.py                   # Centralised logging
+│   ├── custom_exception.py         # Unified and detailed exception handling
+│   ├── logger.py                   # Centralised logging configuration
 │   ├── data_processing.py          # 🌱 Data preparation workflow
 │   └── model_training.py           # 🌳 Model training and evaluation workflow
-├── static/                         # 🎨 CSS and visual assets for Flask UI
-│   ├── style.css                   # Core stylesheet
-│   └── img/
-│       └── app_background.jpg      # Background image overlay
-├── templates/                      # 🧩 HTML templates for the Flask app
-│   └── index.html                  # Web interface for input and prediction
+├── static/                         # 🎨 Visual assets (used in Flask UI)
+├── templates/                      # 🧩 Flask HTML templates (for app stage)
 ├── .gitignore                      # 🚫 Git ignore rules
 ├── .python-version                 # 🐍 Python version pin
 ├── pyproject.toml                  # ⚙️ Project metadata and uv configuration
@@ -68,74 +59,91 @@ mlops_iris_classifier/
 └── uv.lock                         # 🔒 Locked dependency versions
 ```
 
-## ⚙️ **How to Run the Flask App**
+## ⚙️ **How to Run the Training Pipeline**
 
-Before running the web application, ensure:
-
-1. The virtual environment is activated.
-2. The trained model exists under `artifacts/models/model.pkl`.
-3. Dependencies from `requirements.txt` are installed.
-
-Then launch the app with:
+After verifying your dataset exists under `artifacts/raw/data.csv`, execute the following command:
 
 ```bash
-python app.py
+python pipeline/training_pipeline.py
 ```
 
 ### ✅ **Expected Successful Output**
 
 ```console
- * Running on http://127.0.0.1:5000 (Press CTRL+C to quit)
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 194-873-654
+2025-11-07 12:45:16,210 - INFO - Data read successfully. Shape: (150, 6)
+2025-11-07 12:45:16,300 - INFO - Outliers handled successfully for column: SepalWidthCm
+2025-11-07 12:45:16,404 - INFO - Data split successfully into train/test sets.
+2025-11-07 12:45:16,517 - INFO - Processed data saved successfully under artifacts/processed/
+2025-11-07 12:45:16,621 - INFO - ModelTraining initialised successfully.
+2025-11-07 12:45:16,704 - INFO - Processed data loaded successfully.
+2025-11-07 12:45:16,782 - INFO - Model trained and saved successfully.
+2025-11-07 12:45:16,897 - INFO - Accuracy Score  : 1.0000
+2025-11-07 12:45:16,898 - INFO - Precision Score : 1.0000
+2025-11-07 12:45:16,898 - INFO - Recall Score    : 1.0000
+2025-11-07 12:45:16,899 - INFO - F1 Score        : 1.0000
+2025-11-07 12:45:17,041 - INFO - Confusion matrix saved successfully.
 ```
 
-Access the app at **[http://localhost:5000](http://localhost:5000)** to interact with the prediction interface.
+This confirms that:
 
-## 🧠 **User Interface Highlights**
+* Both stages executed successfully in sequence.
+* Artefacts were saved in their respective directories.
+* All steps were logged consistently for reproducibility.
 
-* **Feature Guidance Panel** — Displays feature statistics (range, mean, IQR) for each measurement, helping users stay within valid input ranges.
-* **Validated Numeric Inputs** — Prevents invalid values (e.g., negatives or out-of-range entries).
-* **Predefined Suggestions** — Each input field includes datalist hints (mean, quartile values, etc.) for quick selection.
-* **Full-Width Predict Button** — Prominently displayed at the bottom of the form for clear usability.
-* **Dynamic Background** — Lightly transparent overlay using `app_background.jpg` for professional polish.
-* **Responsive Design** — Scales gracefully for mobile and desktop devices.
+## 🧱 **Code Overview**
+
+```python
+from src.data_processing import DataProcessing
+from src.model_training import ModelTraining
+
+if __name__ == "__main__":
+    # Step 1: Data Processing
+    data_processor = DataProcessing("artifacts/raw/data.csv")
+    data_processor.run()
+
+    # Step 2: Model Training
+    trainer = ModelTraining()
+    trainer.run()
+```
+
+This design ensures that each workflow stage is **self-contained**, yet fully interoperable when executed sequentially.
 
 ## 🧩 **Integration Summary**
 
-| File                            | Purpose                                                          |
-| ------------------------------- | ---------------------------------------------------------------- |
-| `app.py`                        | Flask server for handling routes, requests, and predictions.     |
-| `templates/index.html`          | Dynamic HTML page for user interaction and result display.       |
-| `static/style.css`              | Stylesheet defining layout, fonts, grids, and responsive design. |
-| `static/img/app_background.jpg` | Subtle background image providing depth and contrast.            |
-| `artifacts/models/model.pkl`    | Trained model loaded into Flask for live inference.              |
+| File                            | Purpose                                                      |
+| ------------------------------- | ------------------------------------------------------------ |
+| `pipeline/training_pipeline.py` | Coordinates the end-to-end pipeline execution.               |
+| `src/data_processing.py`        | Handles data loading, cleaning, and splitting.               |
+| `src/model_training.py`         | Trains and evaluates the Decision Tree model.                |
+| `src/logger.py`                 | Provides structured, timestamped logging.                    |
+| `src/custom_exception.py`       | Ensures clear, contextual error handling.                    |
+| `artifacts/`                    | Stores all datasets, trained models, and evaluation outputs. |
 
 ## 💡 **Example Workflow**
 
-1. Run the data preparation module:
+1. Prepare and clean your data:
 
    ```bash
    python src/data_processing.py
    ```
 
-2. Train the model:
+2. Train and evaluate the model:
 
    ```bash
    python src/model_training.py
    ```
 
-3. Launch the Flask app:
+3. Or run the entire workflow automatically:
 
    ```bash
-   python app.py
+   python pipeline/training_pipeline.py
    ```
 
-4. Open your browser and navigate to **[http://localhost:5000](http://localhost:5000)**.
-   Input sepal and petal measurements to receive a real-time Iris species prediction.
+4. Review the generated artefacts under `artifacts/processed/` and `artifacts/models/`.
 
 ## ✅ **In Summary**
 
-This branch extends the **MLOps Iris Classifier** into a **fully interactive prediction application**, bridging the gap between model development and user accessibility.
-With modular back-end logic, responsive front-end design, and integrated guidance for valid data input, the app provides a clean and intuitive interface for demonstrating the complete MLOps lifecycle — from data to deployment.
+This branch elevates the **MLOps Iris Classifier** into a **fully orchestrated machine learning pipeline**, linking all stages — from raw data to trained model — in a single reproducible process.
+The `training_pipeline.py` module ensures that data processing and model training execute reliably, with full logging, error handling, and artefact management.
+
+It establishes the foundation for **future automation**, including CI/CD integration, **MLflow experiment tracking**, or **Kubeflow pipeline deployment**.
