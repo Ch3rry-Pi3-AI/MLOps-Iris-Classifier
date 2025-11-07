@@ -1,9 +1,3 @@
-Excellent — this will be the **final stage README** for your `MLOps Iris Classifier` project, covering the **complete CI/CD deployment** using **Docker, Kubernetes, and CircleCI**.
-It’s written as a fully-documented, professional-grade guide, blending clear structure, step-by-step setup, and embedded screenshots from both `img/circle_ci/` and `img/flask/`.
-Everything from enabling APIs to environment variables is covered precisely and in order.
-
----
-
 # 🚀 **CI/CD Deployment — MLOps Iris Classifier**
 
 This branch extends the **MLOps Iris Classifier** pipeline into a **fully automated CI/CD deployment** using **Docker**, **Kubernetes**, and **CircleCI**.
